@@ -1,0 +1,58 @@
+name: Backend CI
+
+# Trigger on pushes or PRs against main (or adjust to your branch)
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+
+    # If you need a real Postgres for tests, spin one up as a service
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: vibrafit_postgres_db
+          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ${{ secrets.DB_USER }}"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # 1) Check out your code
+      - uses: actions/checkout@v4
+
+      # 2) Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      # 3) Install dependencies & run tests
+      - name: Install & Test
+        working-directory: backend
+        run: |
+          python -m venv env
+          source env/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          # make sure your .env or settings for DB come from secrets
+          python manage.py test
+
+      # 4) Build Docker image (optional)
+      - name: Build backend Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          file: backend/Dockerfile
+          push: false
+          tags: vibrafit-backend:latest
