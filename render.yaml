@@ -5,7 +5,7 @@ services:
     region: ohio
     plan: free
     branch: main 
-    workingDir: /opt/render/project/src/vibrafit/backend
+    workingDir: vibrafit/backend
     buildCommand: |
       cd backend
       pip install -r requirements.txt
