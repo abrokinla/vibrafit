@@ -5,8 +5,9 @@ services:
     region: ohio
     plan: free
     branch: main
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn vibrafit.wsgi:application
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: gunicorn vibrafit_app.wsgi:application
+    workingDir: backend
     envVars:
       - key: SECRET_KEY
         value: ${SECRET_KEY}
@@ -17,4 +18,4 @@ services:
       - key: DEBUG
         value: "False"
       - key: ALLOWED_HOSTS
-        value: vibrafit-backend.onrender.com
+        value: vibrafit.onrender.com
