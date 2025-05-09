@@ -28,6 +28,7 @@ urlpatterns = [
         UserViewSet.as_view({'post': 'register'}),
         name='user-register'
     ),
+    
     # JWT auth endpoints:
     path('auth/login/',           TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('auth/token/refresh/',   TokenRefreshView.as_view(),     name='token_refresh'),
