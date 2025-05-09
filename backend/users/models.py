@@ -20,31 +20,41 @@ class CustomUserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     ROLE_CHOICES = (
-        ('admin', 'Admin'),
+        ('admin',   'Admin'),
         ('trainer', 'Trainer'),
-        ('client', 'Client'),
+        ('client',  'Client'),
     )
-    email = models.EmailField(unique=True)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+
+    email         = models.EmailField(unique=True)
+    role          = models.CharField(max_length=10, choices=ROLE_CHOICES)
+
+    is_active     = models.BooleanField(default=True)
+    is_staff      = models.BooleanField(default=False)
+    created_at    = models.DateTimeField(auto_now_add=True)
+    updated_at    = models.DateTimeField(auto_now=True)
+    name          = models.CharField(max_length=100, blank=True)
+    country       = models.CharField(max_length=100, blank=True)
+    state         = models.CharField(max_length=100, blank=True)
+    is_onboarded  = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD  = 'email'
     REQUIRED_FIELDS = ['role']
 
     def __str__(self):
         return self.email
 
+
 class TrainerProfile(models.Model):
-    user = models.OneToOneField('User', on_delete=models.CASCADE)
-    bio = models.TextField(blank=True)
+    user           = models.OneToOneField(User, on_delete=models.CASCADE, related_name='trainerprofile')
+    bio            = models.TextField(blank=True)
     certifications = models.TextField(blank=True)
-    specialties = models.TextField(blank=True)
-    rating = models.FloatField(default=0.0)
+    specialties    = models.TextField(blank=True)
+    rating         = models.FloatField(default=0.0)
+
+    def __str__(self):
+        return f"TrainerProfile for {self.user.email}"
 
 class Subscription(models.Model):
     client = models.ForeignKey('User', related_name='client_subscriptions', on_delete=models.CASCADE)

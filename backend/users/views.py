@@ -6,39 +6,48 @@ from rest_framework.exceptions import PermissionDenied
 from .permissions import IsTrainer, IsClient, IsAdmin
 from .models import User, TrainerProfile, Subscription, Goal, Plan, DailyLog, Metric
 from .serializers import (UserSerializer, UserRegistrationSerializer, SubscriptionSerializer, 
-                          GoalSerializer, PlanSerializer, DailyLogSerializer, MetricSerializer
+                          GoalSerializer,  OnboardingSerializer, PlanSerializer, DailyLogSerializer, MetricSerializer
 )
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset         = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == 'register':
             return UserRegistrationSerializer
+        if self.action == 'onboard':
+            return OnboardingSerializer
         return UserSerializer
 
     def get_permissions(self):
-        if self.action == 'register':
-            return [permissions.AllowAny()]
+        if self.action in ['register', 'onboard']:
+            return [permissions.AllowAny()] if self.action == 'register' else [permissions.IsAuthenticated()]
         return super().get_permissions()
 
     @action(detail=False, methods=['post'], url_path='register')
     def register(self, request, *args, **kwargs):
-        """
-        POST /users/register/ → create a new User (and TrainerProfile if needed)
-        """
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        # return the standard UserSerializer in the response
         output = UserSerializer(user, context={'request': request})
         return Response(output.data, status=status.HTTP_201_CREATED)
 
+    @action(detail=True, methods=['post'], url_path='onboard', permission_classes=[permissions.IsAuthenticated])
+    def onboard(self, request, pk=None):
+        """
+        POST /api/users/{id}/onboard/
+        Updates name, country, state, and flips is_onboarded=True
+        """
+        user = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(user, serializer.validated_data)
+        return Response({'success': True}, status=status.HTTP_200_OK)
 class SubscriptionViewSet(viewsets.ModelViewSet):    
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer

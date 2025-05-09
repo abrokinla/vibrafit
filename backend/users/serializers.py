@@ -3,16 +3,24 @@ from .models import User, TrainerProfile, Subscription, Goal, Plan, DailyLog, Me
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
-        model = User
-        fields = ['id','email','role','is_active','is_staff','created_at','updated_at']
-        read_only_fields = ['id','is_active','is_staff','created_at','updated_at']
+        model  = User
+        fields = [
+            'id','email','role',
+            'is_active','is_staff','created_at','updated_at',
+            # expose onboarding/profile fields
+            'name','country','state','is_onboarded',
+        ]
+        read_only_fields = [
+            'id','is_active','is_staff','created_at','updated_at',
+            'is_onboarded',
+        ]
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
-        model = User
+        model  = User
         fields = ['id', 'email', 'password', 'role']
         read_only_fields = ['id']
 
@@ -24,6 +32,21 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         if user.role == 'trainer':
             TrainerProfile.objects.create(user=user)
         return user
+
+
+class OnboardingSerializer(serializers.Serializer):
+    name    = serializers.CharField(max_length=100)
+    country = serializers.CharField(max_length=100)
+    state   = serializers.CharField(max_length=100)
+
+    def update(self, instance, validated_data):
+        # instance is a User
+        instance.name         = validated_data['name']
+        instance.country      = validated_data['country']
+        instance.state        = validated_data['state']
+        instance.is_onboarded = True
+        instance.save()
+        return instance
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
