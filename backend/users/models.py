@@ -36,6 +36,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     country       = models.CharField(max_length=100, blank=True)
     state         = models.CharField(max_length=100, blank=True)
     is_onboarded  = models.BooleanField(default=False)
+    profilePictureUrl = models.CharField(max_length=100, blank=True)
 
     objects = CustomUserManager()
 

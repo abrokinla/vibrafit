@@ -9,6 +9,7 @@ class UserSerializer(serializers.ModelSerializer):
             'is_active','is_staff','created_at','updated_at',
             # expose onboarding/profile fields
             'name','country','state','is_onboarded',
+            'profilePictureUrl',
         ]
         read_only_fields = [
             'id','is_active','is_staff','created_at','updated_at',

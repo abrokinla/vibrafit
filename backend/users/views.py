@@ -48,6 +48,16 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.update(user, serializer.validated_data)
         return Response({'success': True}, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['patch'], url_path='upload-profile-picture')
+    def upload_profile_picture(self, request):
+        user = request.user
+        new_url = request.data.get('profilePictureUrl')
+        if not new_url:
+            return Response({"error": "No profilePictureUrl provided"}, status=400)
+        user.profilePictureUrl = new_url
+        user.save()
+        return Response({"success": True, "profilePictureUrl": new_url})
 class SubscriptionViewSet(viewsets.ModelViewSet):    
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
